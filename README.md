@@ -1,1 +1,0 @@
-# Wazuh_Agent_Linux
