@@ -53,12 +53,18 @@ augenrules --load
 # --- 7. Integrasi Log Auditd ke Wazuh (ossec.conf) ---
 echo -e "\e[33m[5/8] Mengintegrasikan Log Auditd ke ossec.conf...\e[0m"
 OSSEC_CONF="/var/ossec/etc/ossec.conf"
+
+# Pengecekan lebih fleksibel menggunakan grep
 if ! grep -q "/var/log/audit/audit.log" "$OSSEC_CONF"; then
+    # Menggunakan sed tanpa spasi berlebih di awal baris agar grep konsisten
     sed -i '/<ossec_config>/a \
   <localfile>\
     <log_format>audit</log_format>\
     <location>/var/log/audit/audit.log</location>\
   </localfile>' "$OSSEC_CONF"
+    echo -e "\e[32m[OK] Konfigurasi Audit ditambahkan.\e[0m"
+else
+    echo -e "\e[33m[SKIP] Konfigurasi Audit sudah ada, tidak menduplikat.\e[0m"
 fi
 
 # --- 8. Mengaktifkan Remote Commands ---
