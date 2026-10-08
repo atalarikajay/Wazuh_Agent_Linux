@@ -20,8 +20,8 @@
 #
 #  VARIABEL LINGKUNGAN
 #    WAZUH_MANAGER     IP atau hostname manajer (wajib bila tanpa interaksi)
-#    WAZUH_GROUP       satu atau lebih grup, pisah koma (wajib bila tanpa interaksi)
-#    AGENT_NAME        nama agen, bawaan hostname
+#    WAZUH_GROUP       satu atau lebih group, pisah koma (wajib bila tanpa interaksi)
+#    AGENT_NAME        nama agent, bawaan hostname
 #    WAZUH_PASSWORD    kata sandi pendaftaran, bila manajer memintanya
 #    WAZUH_VERSION     versi paket, bawaan 4.9.2-1
 #    WAZUH_REG_PORT    porta pendaftaran, bawaan 1515
@@ -136,7 +136,7 @@ validate_host() {
     return 1
 }
 
-# Nama agen Wazuh boleh memuat titik, strip, dan garis bawah. Versi
+# Nama agent Wazuh boleh memuat titik, strip, dan garis bawah. Versi
 # sebelumnya membuang titik sehingga nama berbentuk FQDN menjadi rusak,
 # misalnya srv-01.corp.local menjadi srv-01corplocal.
 validate_agent_name() {
@@ -145,8 +145,8 @@ validate_agent_name() {
     return 0
 }
 
-# Grup dipisah koma. Versi sebelumnya membuang koma lewat tr sehingga
-# tiga grup menjadi satu nama grup yang tidak ada di manajer, dan
+# group dipisah koma. Versi sebelumnya membuang koma lewat tr sehingga
+# tiga group menjadi satu nama group yang tidak ada di manajer, dan
 # pendaftaran gagal tanpa penjelasan.
 clean_groups() {
     local raw="$1" out=() g
@@ -235,8 +235,8 @@ pkg_refresh() {
 }
 
 # Mengunci versi paket agar tidak ikut terbarui saat pembaruan sistem.
-# Pembaruan agen sebaiknya direncanakan, bukan terjadi tanpa sengaja,
-# karena versi agen perlu cocok dengan versi manajer.
+# Pembaruan agent sebaiknya direncanakan, bukan terjadi tanpa sengaja,
+# karena versi agent perlu cocok dengan versi manajer.
 pkg_hold() {
     case "$PKG" in
         apt)
@@ -248,7 +248,7 @@ pkg_hold() {
             # Memakai versionlock, bukan exclude. Baris exclude di berkas
             # konfigurasi manajer paket membuat paket tidak bisa dipasang
             # ulang maupun diperbarui bahkan secara sengaja, dan itu
-            # menyulitkan saat agen perlu dinaikkan versinya.
+            # menyulitkan saat agent perlu dinaikkan versinya.
             local lock_pkg="" locked=0
             case "$PKG" in
                 dnf) lock_pkg="python3-dnf-plugin-versionlock" ;;
@@ -268,7 +268,7 @@ pkg_hold() {
                 ok "Paket dikunci dengan $PKG versionlock"
             else
                 warn "Plugin versionlock tidak tersedia. Paket TIDAK dikunci."
-                dim "Agen bisa ikut terbarui saat '$PKG update'. Untuk mengunci:"
+                dim "agent bisa ikut terbarui saat '$PKG update'. Untuk mengunci:"
                 dim "  $PKG install -y $lock_pkg && $PKG versionlock add wazuh-agent"
             fi
             ;;
@@ -302,7 +302,7 @@ step "Mengumpulkan data pemasangan"
 if [ -z "${WAZUH_MANAGER:-}" ]; then
     [ "$NONINTERACTIVE" = "1" ] && die "WAZUH_MANAGER belum diisi dalam mode tanpa interaksi."
     echo
-    dim "Alamat tujuan agen menyambung. Boleh IP maupun nama domain."
+    dim "Alamat tujuan agent menyambung. Boleh IP maupun nama domain."
     dim "Contoh IP      : 192.0.2.10"
     dim "Contoh domain  : wazuh.corp.local"
     dim "Contoh domain  : soc-wazuh.perusahaan.co.id"
@@ -325,25 +325,25 @@ else
       || die "WAZUH_MANAGER='$WAZUH_MANAGER' bukan IP atau nama domain yang sah. Contoh benar: 192.0.2.10 atau wazuh.corp.local"
 fi
 
-# --- grup
+# --- group
 if [ -z "${WAZUH_GROUP:-}" ]; then
     [ "$NONINTERACTIVE" = "1" ] && die "WAZUH_GROUP belum diisi dalam mode tanpa interaksi."
     echo
-    dim "Grup menentukan berkas agent.conf mana yang diterima agen ini."
-    dim "Grup harus SUDAH ADA di manajer, skrip ini tidak membuatnya."
-    dim "Contoh satu grup   : default"
-    dim "Contoh satu grup   : linux-server"
-    dim "Contoh banyak grup : linux-server,web,produksi"
+    dim "group menentukan berkas agent.conf mana yang diterima agent ini."
+    dim "group harus SUDAH ADA di manajer, skrip ini tidak membuatnya."
+    dim "Contoh satu group   : default"
+    dim "Contoh satu group   : linux-server"
+    dim "Contoh banyak group : linux-server,web,produksi"
     tries=0
     while true; do
         tries=$((tries + 1))
-        [ "$tries" -gt 5 ] && die "Terlalu banyak masukan tidak sah untuk grup."
-        ask "  Grup agen: " WAZUH_GROUP
+        [ "$tries" -gt 5 ] && die "Terlalu banyak masukan tidak sah untuk group."
+        ask "  group agent: " WAZUH_GROUP
         if cleaned=$(clean_groups "$WAZUH_GROUP" 2>/dev/null); then
             WAZUH_GROUP="$cleaned"
             break
         fi
-        echo -e "${R}  Grup tidak sah. Hanya huruf, angka, titik, strip, garis bawah.${N}"
+        echo -e "${R}  group tidak sah. Hanya huruf, angka, titik, strip, garis bawah.${N}"
         echo -e "${R}  Pisahkan dengan koma bila lebih dari satu, misalnya: linux-server,web${N}"
     done
 else
@@ -354,23 +354,23 @@ else
     fi
 fi
 
-# --- nama agen
+# --- nama agent
 if [ -z "${AGENT_NAME:-}" ]; then
     DEFAULT_NAME="$(hostname 2>/dev/null || echo "wazuh-agent")"
     if [ "$NONINTERACTIVE" = "1" ]; then
         AGENT_NAME="$DEFAULT_NAME"
     else
         echo
-        dim "Nama yang muncul di dasbor manajer. Harus unik, tidak boleh"
-        dim "sama dengan agen lain yang sudah terdaftar."
+        dim "Nama yang muncul di dashboard manajer. Harus unik, tidak boleh"
+        dim "sama dengan agent lain yang sudah terdaftar."
         dim "Contoh : srv-web-01"
         dim "Contoh : db-prod-02.corp.local"
         dim "Tekan Enter saja untuk memakai nama mesin ini: $DEFAULT_NAME"
         tries=0
         while true; do
             tries=$((tries + 1))
-            [ "$tries" -gt 5 ] && die "Terlalu banyak masukan tidak sah untuk nama agen."
-            ask "  Nama agen [$DEFAULT_NAME]: " AGENT_NAME
+            [ "$tries" -gt 5 ] && die "Terlalu banyak masukan tidak sah untuk nama agent."
+            ask "  Nama agent [$DEFAULT_NAME]: " AGENT_NAME
             AGENT_NAME="${AGENT_NAME:-$DEFAULT_NAME}"
             validate_agent_name "$AGENT_NAME" && break
             echo -e "${R}  '$AGENT_NAME' tidak sah. Hanya huruf, angka, titik, strip,${N}"
@@ -380,13 +380,13 @@ if [ -z "${AGENT_NAME:-}" ]; then
     fi
 fi
 validate_agent_name "$AGENT_NAME" \
-  || die "Nama agen '$AGENT_NAME' tidak sah. Hanya huruf, angka, titik, strip, garis bawah, 2 sampai 128 karakter. Contoh benar: srv-web-01"
+  || die "Nama agent '$AGENT_NAME' tidak sah. Hanya huruf, angka, titik, strip, garis bawah, 2 sampai 128 karakter. Contoh benar: srv-web-01"
 
 echo
 echo "  Ringkasan:"
 echo "    Manajer       : $WAZUH_MANAGER"
-echo "    Nama agen     : $AGENT_NAME"
-echo "    Grup          : $WAZUH_GROUP"
+echo "    Nama agent     : $AGENT_NAME"
+echo "    group          : $WAZUH_GROUP"
 echo "    Versi paket   : $WAZUH_VERSION"
 # Baris di bawah hanya muncul bila memang menyimpang dari bawaan, supaya
 # ringkasan tidak dipenuhi keterangan yang tidak memberi tahu apa apa.
@@ -413,7 +413,7 @@ fi
 step "Memeriksa kesiapan mesin"
 
 # Porta wajib terbuka. Gagal di sini jauh lebih baik daripada pemasangan
-# yang dilaporkan berhasil lalu agen diam diam tidak pernah terdaftar.
+# yang dilaporkan berhasil lalu agent diam diam tidak pernah terdaftar.
 for p in "$WAZUH_COMM_PORT" "$WAZUH_REG_PORT"; do
     label="pengiriman event"
     [ "$p" = "$WAZUH_REG_PORT" ] && label="pendaftaran"
@@ -436,7 +436,7 @@ else
     esac
 fi
 
-# Ruang disk. Agen menulis log dan basis data FIM, dan auditd bisa
+# Ruang disk. agent menulis log dan basis data FIM, dan auditd bisa
 # tumbuh cepat setelah aturan execve aktif.
 AVAIL_MB="$(df -Pm /var 2>/dev/null | awk 'NR==2{print $4}')"
 if [ -n "$AVAIL_MB" ] && [ "$AVAIL_MB" -lt 2048 ]; then
@@ -451,7 +451,7 @@ fi
 #
 #   /var/ossec/bin/wazuh-control stop
 #
-# tanpa memeriksa keberadaan berkas itu. Bila folder agen pernah dihapus
+# tanpa memeriksa keberadaan berkas itu. Bila folder agent pernah dihapus
 # manual sementara paket masih tercatat di dpkg, pemanggilan tersebut
 # berakhir dengan kode 127 dan dpkg menolak memproses paket. Akibatnya
 # paket tidak bisa dicabut maupun dipasang ulang.
@@ -510,7 +510,7 @@ MSG
 fi
 
 # Keadaan setara pada keluarga RHEL: paket tercatat di basis data rpm
-# tetapi folder agen sudah tidak ada.
+# tetapi folder agent sudah tidak ada.
 if [ "$OS_FAMILY" = "rhel" ]; then
     if rpm -q wazuh-agent >/dev/null 2>&1 && [ ! -d "$OSSEC_DIR" ]; then
         warn "Paket wazuh-agent tercatat di rpm tetapi folder $OSSEC_DIR tidak ada."
@@ -546,14 +546,14 @@ MSG
     fi
 fi
 
-# Agen lama yang masih berjalan wajar. Pemasangan di atasnya menimpa
+# agent lama yang masih berjalan wajar. Pemasangan di atasnya menimpa
 # konfigurasi dan kunci pendaftaran.
 if systemctl is-active --quiet wazuh-agent 2>/dev/null; then
     warn "wazuh-agent sudah berjalan. Konfigurasi akan dipasang ulang."
     if [ -s "$CLIENT_KEYS" ]; then
         OLD_ID="$(awk 'NR==1{print $1" "$2}' "$CLIENT_KEYS" 2>/dev/null || true)"
         [ -n "$OLD_ID" ] && dim "Terdaftar saat ini sebagai: $OLD_ID"
-        dim "Pemasangan ulang membuat entri baru. Entri lama perlu dihapus dari dasbor."
+        dim "Pemasangan ulang membuat entri baru. Entri lama perlu dihapus dari dashboard."
     fi
     if [ "$NONINTERACTIVE" != "1" ]; then
         ask "  Tetap lanjutkan? (y/N): " GO
@@ -566,11 +566,11 @@ else
     ok "Belum ada wazuh-agent yang berjalan"
 fi
 
-# SELinux dalam mode enforcing dapat menghalangi auditd dan agen.
+# SELinux dalam mode enforcing dapat menghalangi auditd dan agent.
 if [ "$OS_FAMILY" = "rhel" ] && command -v getenforce >/dev/null 2>&1; then
     SEL="$(getenforce 2>/dev/null || echo Unknown)"
     case "$SEL" in
-        Enforcing) warn "SELinux Enforcing. Bila agen gagal membaca log, periksa 'ausearch -m AVC -ts recent'." ;;
+        Enforcing) warn "SELinux Enforcing. Bila agent gagal membaca log, periksa 'ausearch -m AVC -ts recent'." ;;
         *) ok "SELinux: $SEL" ;;
     esac
 fi
@@ -624,7 +624,7 @@ ok "Repositori siap"
 step "Memasang wazuh-agent $WAZUH_VERSION"
 
 # Variabel lingkungan di bawah dibaca oleh skrip pascapasang paket untuk
-# mengisi konfigurasi awal dan mendaftarkan agen.
+# mengisi konfigurasi awal dan mendaftarkan agent.
 INSTALL_ENV=(
     "WAZUH_MANAGER=$WAZUH_MANAGER"
     "WAZUH_AGENT_GROUP=$WAZUH_GROUP"
@@ -685,7 +685,7 @@ rm -f "$PKG_OUT"
 # Keadaan itu dipulihkan di sini, bukan dilaporkan sebagai kegagalan.
 if [ ! -f "$OSSEC_CONF" ] && [ -f "${OSSEC_CONF}.new" ]; then
     warn "Paket memperlakukan ini sebagai peningkatan, konfigurasi ditulis sebagai ossec.conf.new"
-    dim "Ini terjadi bila agen pernah dipasang lalu dicabut tanpa purge."
+    dim "Ini terjadi bila agent pernah dipasang lalu dicabut tanpa purge."
     mv "${OSSEC_CONF}.new" "$OSSEC_CONF" \
       && ok "ossec.conf.new dipakai sebagai ossec.conf" \
       || die "Gagal memindahkan ${OSSEC_CONF}.new ke $OSSEC_CONF"
@@ -708,7 +708,7 @@ if [ ! -f "$OSSEC_CONF" ]; then
     die "$(cat <<MSG
 Paket terpasang tetapi $OSSEC_CONF tidak ada.
 
-        Penyebab paling umum: agen pernah dipasang lalu dicabut tanpa purge,
+        Penyebab paling umum: agent pernah dipasang lalu dicabut tanpa purge,
         sehingga dpkg memperlakukan pemasangan ini sebagai peningkatan versi
         dan menulis konfigurasi ke ossec.conf.new.
 
@@ -726,8 +726,8 @@ fi
 
 ok "Paket wazuh-agent $WAZUH_VERSION terpasang"
 
-# Berkas tanda tangan rootkit disalin keluar dari etc/shared sebelum agen
-# berjalan. Direktori itu dikelola manajer: begitu konfigurasi grup
+# Berkas tanda tangan rootkit disalin keluar dari etc/shared sebelum agent
+# berjalan. Direktori itu dikelola manajer: begitu konfigurasi group
 # dikirim, seluruh isinya diganti dan berkas bawaan paket terhapus.
 # Akibatnya rootcheck mencatat 'No rootcheck_files file' pada setiap
 # pemindaian dan pemeriksaan tanda tangan rootkit tidak pernah berjalan.
@@ -788,10 +788,10 @@ else
 
     # GID dihitung, tidak ditulis tetap. Nilai 994 yang sering dicontohkan
     # tidak dijamin sama di tiap host. Bila meleset, penyaring mengecualikan
-    # grup yang salah dan agen mencatat aktivitasnya sendiri tanpa henti.
+    # group yang salah dan agent mencatat aktivitasnya sendiri tanpa henti.
     GID_WAZUH="$(getent group wazuh | cut -d: -f3)"
-    [ -n "$GID_WAZUH" ] || die "Grup 'wazuh' tidak ada setelah pemasangan paket."
-    dim "GID grup wazuh: $GID_WAZUH"
+    [ -n "$GID_WAZUH" ] || die "group 'wazuh' tidak ada setelah pemasangan paket."
+    dim "GID group wazuh: $GID_WAZUH"
 
     # Berkas ditulis penuh setiap kali, sehingga menjalankan skrip dua kali
     # tidak menghasilkan aturan ganda.
@@ -799,7 +799,7 @@ else
     # Dua penyaring penting pada aturan syscall:
     #   auid>=1000              semua pengguna interaktif, bukan hanya uid 1000
     #   auid!=4294967295        kecualikan proses daemon yang tidak punya auid
-    #   egid!=$GID_WAZUH        cegah agen mencatat dirinya sendiri
+    #   egid!=$GID_WAZUH        cegah agent mencatat dirinya sendiri
     cat > "$AUDIT_RULES" <<EOF
 ## Dikelola skrip pemasangan Wazuh. Jangan sunting manual.
 ## Perubahan akan ditimpa saat skrip dijalankan ulang.
@@ -915,13 +915,13 @@ EOF
 
     # Aturan koneksi keluar dipisah karena volumenya paling tinggi dan
     # paling mungkin perlu dimatikan sendiri di server dengan lalu lintas
-    # padat seperti peladen web atau basis data.
+    # padat seperti server web atau basis data.
     cat >> "$AUDIT_RULES" <<EOF
 
 ## ---------- Koneksi keluar ----------
 ## Berguna untuk mendeteksi komando kendali dan penyelundupan data.
 ## Volumenya paling tinggi di antara semua aturan di berkas ini. Bila
-## beban terlalu besar di peladen tertentu, beri tanda pagar pada dua
+## beban terlalu besar di server tertentu, beri tanda pagar pada dua
 ## baris berikut lalu jalankan: augenrules --load
 -a always,exit -F arch=b64 -S connect -F auid>=1000 -F auid!=4294967295 -F egid!=$GID_WAZUH -k audit-wazuh-netconn
 -a always,exit -F arch=b32 -S connect -F auid>=1000 -F auid!=4294967295 -F egid!=$GID_WAZUH -k audit-wazuh-netconn
@@ -1005,7 +1005,7 @@ EOF
 
     # Ukuran dan rotasi log audit. Setelah aturan execve aktif, berkas ini
     # tumbuh jauh lebih cepat dan bawaan distribusi sering terlalu kecil,
-    # sehingga event lama terhapus sebelum agen mengirimkannya.
+    # sehingga event lama terhapus sebelum agent mengirimkannya.
     if [ -f /etc/audit/auditd.conf ]; then
         cp -a /etc/audit/auditd.conf "/etc/audit/auditd.conf.bak.$(date +%s)"
         set_auditd_conf() {
@@ -1047,7 +1047,7 @@ add_opt(){
   fi
 }
 
-# Diperlukan karena konfigurasi grup memakai <command> dan <full_command>.
+# Diperlukan karena konfigurasi group memakai <command> dan <full_command>.
 add_opt "logcollector.remote_commands"  "1"
 add_opt "wazuh_command.remote_commands" "1"
 # Jumlah berkas yang boleh dipantau FIM secara serentak. Bawaan terlalu
@@ -1055,7 +1055,7 @@ add_opt "wazuh_command.remote_commands" "1"
 # tanpa pesan kesalahan.
 add_opt "syscheck.max_fd" "512"
 # Batas laju pembacaan log. Dinaikkan agar lonjakan audit tidak membuat
-# agen tertinggal membaca audit.log.
+# agent tertinggal membaca audit.log.
 add_opt "logcollector.max_lines" "10000"
 
 chown root:wazuh "$LOCAL_OPT" 2>/dev/null || true
@@ -1109,7 +1109,7 @@ if [ "$OS_FAMILY" = "debian" ]; then
     add_logfile /var/log/audit/audit.log audit
 fi
 
-# Log peladen web bila ada. Sumber utama deteksi eksploitasi aplikasi.
+# Log server web bila ada. Sumber utama deteksi eksploitasi aplikasi.
 add_logfile /var/log/nginx/access.log
 add_logfile /var/log/nginx/error.log
 add_logfile /var/log/apache2/access.log
@@ -1193,7 +1193,7 @@ FIM_BLOCK=$(cat <<'FIMEOF'
     <directories realtime="yes" check_all="yes">/tmp,/var/tmp</directories>
 
     <!-- Berkas yang berubah terus menerus. Tanpa pengecualian ini,
-         peringatan FIM membanjiri dasbor dan menutupi yang penting. -->
+         peringatan FIM membanjiri dashboard dan menutupi yang penting. -->
     <ignore type="sregex">\.log$|\.swp$|\.tmp$|\.lock$|\.pid$|\.sock$</ignore>
     <ignore>/tmp/systemd-private</ignore>
     <ignore>/var/tmp/systemd-private</ignore>
@@ -1290,7 +1290,7 @@ $FIM_BLOCK
        hak yang sering dipakai.
        Pencarian dibatasi pada direktori tempat berkas setuid yang sah
        berada, bukan seluruh sistem berkas. Menjelajah dari / bisa
-       memakan waktu lama dan membebani cakram pada peladen dengan
+       memakan waktu lama dan membebani cakram pada server dengan
        jutaan berkas, dan hasil di luar jalur ini sudah tertangkap FIM. -->
   <localfile>
     <log_format>full_command</log_format>
@@ -1342,7 +1342,7 @@ ok "Blok konfigurasi tersisip dan lolos pemeriksaan XML"
 # Blok <rootcheck> bawaan menunjuk ke etc/shared, direktori yang isinya
 # diganti manajer. Rujukannya dialihkan ke salinan di etc/ yang dibuat
 # pada langkah pemasangan paket, sehingga pemeriksaan tanda tangan
-# rootkit tetap berjalan setelah konfigurasi grup diterima.
+# rootkit tetap berjalan setelah konfigurasi group diterima.
 if [ "$ROOTKIT_DB_OK" = "1" ]; then
     if grep -q 'etc/shared/rootkit_files.txt' "$OSSEC_CONF" 2>/dev/null; then
         sed -i 's|<rootkit_files>etc/shared/rootkit_files.txt</rootkit_files>|<rootkit_files>etc/rootkit_files.txt</rootkit_files>|g; s|<rootkit_trojans>etc/shared/rootkit_trojans.txt</rootkit_trojans>|<rootkit_trojans>etc/rootkit_trojans.txt</rootkit_trojans>|g' "$OSSEC_CONF"
@@ -1365,7 +1365,7 @@ PYCHK
 fi
 
 # =============================================================================
-#  Langkah 8: menjalankan agen
+#  Langkah 8: menjalankan agent
 # =============================================================================
 step "Menjalankan wazuh-agent"
 
@@ -1385,9 +1385,9 @@ fi
 # =============================================================================
 step "Menunggu pendaftaran dan sambungan ke manajer"
 
-# Pemeriksaan ini yang menentukan. Agen bisa berstatus aktif tetapi tidak
+# Pemeriksaan ini yang menentukan. agent bisa berstatus aktif tetapi tidak
 # pernah tersambung karena alamat salah, porta diblokir, nama bentrok,
-# atau grup tidak ada di manajer.
+# atau group tidak ada di manajer.
 info "Batas waktu ${CONNECT_TIMEOUT} detik"
 CONNECTED=0
 FAIL_REASON=""
@@ -1410,13 +1410,13 @@ if [ -s "$CLIENT_KEYS" ]; then
     AGENT_ID="$(awk 'NR==1{print $1" ("$2")"}' "$CLIENT_KEYS" 2>/dev/null || true)"
     ok "Terdaftar ke manajer: ID $AGENT_ID"
 else
-    warn "client.keys masih kosong, agen belum terdaftar."
+    warn "client.keys masih kosong, agent belum terdaftar."
     dim "Penyebab umum: porta 1515 tertutup, kata sandi pendaftaran salah,"
-    dim "atau nama agen sudah dipakai agen lain di manajer."
+    dim "atau nama agent sudah dipakai agent lain di manajer."
 fi
 
 if [ "$CONNECTED" -eq 1 ]; then
-    ok "Agen tersambung ke manajer $WAZUH_MANAGER"
+    ok "agent tersambung ke manajer $WAZUH_MANAGER"
 elif [ -n "$FAIL_REASON" ]; then
     warn "Gagal tersambung: $FAIL_REASON"
 else
@@ -1428,15 +1428,15 @@ fi
 # =============================================================================
 step "Verifikasi pemantauan"
 
-# Agen merestart dirinya sendiri setelah menerima konfigurasi grup dari
+# agent merestart dirinya sendiri setelah menerima konfigurasi group dari
 # manajer, karena ossec.conf bawaan memuat <auto_restart>yes</auto_restart>.
 # Verifikasi yang berjalan tepat pada saat itu akan melihat daemon sedang
-# mati dan melaporkannya sebagai kegagalan, padahal agen sehat.
+# mati dan melaporkannya sebagai kegagalan, padahal agent sehat.
 #
 # Bagian ini menunggu sampai daftar daemon stabil: tidak ada lagi yang
 # berstatus 'not running' selama beberapa pemeriksaan berturut turut.
 if [ "$SKIP_VERIFY" != "1" ] && [ -x "$OSSEC_DIR/bin/wazuh-control" ]; then
-    info "Menunggu daemon agen stabil"
+    info "Menunggu daemon agent stabil"
     STABLE=0
     for _ in $(seq 1 20); do
         CTRL_NOW="$("$OSSEC_DIR/bin/wazuh-control" status 2>/dev/null || true)"
@@ -1451,7 +1451,7 @@ if [ "$SKIP_VERIFY" != "1" ] && [ -x "$OSSEC_DIR/bin/wazuh-control" ]; then
         sleep 2
     done
     if [ "$STABLE" -ge 2 ]; then
-        ok "Daemon agen stabil"
+        ok "Daemon agent stabil"
     else
         dim "Daemon masih berubah status, verifikasi tetap dilanjutkan"
     fi
@@ -1581,15 +1581,15 @@ else
             done
             dim "Wazuh membawa kebijakan CIS hanya untuk sebagian versi rilis."
             dim "Bila versi mesin ini belum didukung, SCA tidak memeriksa apa pun."
-            dim "Periksa kebijakan yang tersedia di manajer: /var/ossec/etc/shared/<grup>/"
+            dim "Periksa kebijakan yang tersedia di manajer: /var/ossec/etc/shared/<group>/"
         elif [ "$SCA_POLICIES" -gt 0 ]; then
             vcheck pass "Kebijakan SCA tersedia" "$SCA_POLICIES berkas"
         else
-            vcheck warn "Kebijakan SCA tersedia" "belum ada, biasanya dikirim manajer lewat grup"
+            vcheck warn "Kebijakan SCA tersedia" "belum ada, biasanya dikirim manajer lewat group"
         fi
     fi
 
-    # --- proses agen yang seharusnya hidup
+    # --- proses agent yang seharusnya hidup
     #
     # Kernel memotong nama proses di /proc/PID/comm menjadi 15 karakter,
     # sedangkan 'pgrep -x' mencocokkan tepat terhadap nama itu. Akibatnya
@@ -1634,7 +1634,7 @@ else
         fi
     fi
 
-    # --- galat di log agen
+    # --- galat di log agent
     if [ -f "$OSSEC_LOG" ]; then
         ERR_COUNT="$(tail -200 "$OSSEC_LOG" 2>/dev/null | grep -cE 'ERROR|CRITICAL' || true)"
         if [ "$ERR_COUNT" -eq 0 ]; then
@@ -1655,9 +1655,9 @@ echo
 echo "=============================================================="
 echo "   Selesai"
 echo "=============================================================="
-echo "   Agen          : $AGENT_NAME"
+echo "   agent          : $AGENT_NAME"
 echo "   Manajer       : $WAZUH_MANAGER"
-echo "   Grup          : $WAZUH_GROUP"
+echo "   group          : $WAZUH_GROUP"
 echo "   Distribusi    : ${PRETTY_NAME:-$OS_FAMILY}"
 if [ "$SKIP_AUDIT" != "1" ]; then
     LOADED_FINAL="$(auditctl -l 2>/dev/null | grep -c 'audit-wazuh' || true)"
@@ -1691,21 +1691,21 @@ fi
 echo
 echo "   Langkah berikutnya:"
 echo
-echo "   Di mesin ini (agen):"
+echo "   Di mesin ini (agent):"
 echo "     Status daemon      : $OSSEC_DIR/bin/wazuh-control status"
 echo "     Konfigurasi aktif  : $OSSEC_DIR/bin/wazuh-control info"
 echo "     Pantau log         : tail -f $OSSEC_LOG"
 echo "     Aturan audit aktif : auditctl -l | grep -c audit-wazuh"
 echo
-echo "   Di peladen manajer, bukan di sini:"
-echo "     Pastikan agen terdaftar :"
+echo "   Di server manajer, bukan di sini:"
+echo "     Pastikan agent terdaftar :"
 echo "       /var/ossec/bin/agent_control -l | grep -i '$AGENT_NAME'"
-echo "     Lihat rincian agen :"
+echo "     Lihat rincian agent :"
 echo "       /var/ossec/bin/agent_control -i \$(/var/ossec/bin/agent_control -l | grep -i '$AGENT_NAME' | awk '{print \$2}' | tr -d ',')"
 echo
-echo "   Di dasbor:"
+echo "   Di dashboard:"
 echo "     Pastikan alert dari '$AGENT_NAME' masuk ke indeks wazuh-alerts-*"
-echo "     Tanpa ini, agen terlihat tersambung tetapi datanya tidak terpakai."
+echo "     Tanpa ini, agent terlihat tersambung tetapi datanya tidak terpakai."
 
 # Aturan auditd berlaku seketika lewat augenrules, jadi pemasangan tidak
 # memerlukan mesin dinyalakan ulang. Satu satunya pengecualian adalah
@@ -1723,9 +1723,9 @@ echo "=============================================================="
 
 if [ "$CONNECTED" -ne 1 ]; then
     echo
-    echo "Agen belum tersambung. Periksa:"
-    echo "  - grup '$WAZUH_GROUP' sudah ada di manajer?"
-    echo "  - nama '$AGENT_NAME' bentrok dengan agen lain?"
+    echo "agent belum tersambung. Periksa:"
+    echo "  - group '$WAZUH_GROUP' sudah ada di manajer?"
+    echo "  - nama '$AGENT_NAME' bentrok dengan agent lain?"
     echo "  - porta $WAZUH_REG_PORT dan $WAZUH_COMM_PORT terbuka dua arah?"
     echo
     echo "--- 25 baris terakhir $OSSEC_LOG ---"
