@@ -307,7 +307,7 @@ if [ -z "${WAZUH_MANAGER:-}" ]; then
     while true; do
         tries=$((tries + 1))
         [ "$tries" -gt 5 ] && die "Terlalu banyak masukan tidak sah untuk alamat manajer."
-        ask "  IP atau hostname Wazuh Manager: " WAZUH_MANAGER
+        ask "  IP atau Domain Wazuh Worker/Manager: " WAZUH_MANAGER
         validate_host "$WAZUH_MANAGER" && break
         echo -e "${R}  '$WAZUH_MANAGER' bukan IP atau hostname yang sah.${N}"
     done
