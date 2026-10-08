@@ -23,7 +23,7 @@
 #    0  terhapus bersih, tidak ada sisa
 #    1  gagal sebelum mulai, misalnya bukan root
 #    2  terhapus, ada sisa yang bisa dibereskan tanpa menyalakan ulang
-#    3  GAGAL, paket atau folder agen masih ada
+#    3  GAGAL, paket atau folder agent masih ada
 #
 #  TIDAK PERLU MENYALAKAN ULANG MESIN
 #  Aturan audit hidup di kernel dan dilepas seketika oleh auditctl, jadi
@@ -191,7 +191,7 @@ if command -v auditctl >/dev/null 2>&1; then
     fi
 fi
 
-# Identitas agen perlu ditampilkan sebelum dihapus, karena entri di
+# Identitas agent perlu ditampilkan sebelum dihapus, karena entri di
 # manajer harus dibersihkan manual memakai ID ini.
 AGENT_IDENT=""
 if [ -s "$OSSEC_DIR/etc/client.keys" ]; then
@@ -216,8 +216,8 @@ if [ "$ASSUME_YES" != "1" ]; then
     [ "$KEEP_REPO" != "1" ] && echo "     Repositori Wazuh dan kunci GPG"
     [ "$KEEP_AUDITD" = "1" ] && echo "     Paket auditd DIBIARKAN terpasang"
     echo
-    echo -e "   ${Y}Kunci pendaftaran agen ikut terhapus.${N}"
-    echo -e "   ${Y}Bila agen dipasang ulang, ia mendaftar sebagai entri baru,${N}"
+    echo -e "   ${Y}Kunci pendaftaran agent ikut terhapus.${N}"
+    echo -e "   ${Y}Bila agent dipasang ulang, ia mendaftar sebagai entri baru,${N}"
     echo -e "   ${Y}dan entri lama perlu dihapus manual dari dasbor.${N}"
     if [ -n "$AGENT_IDENT" ]; then
         echo -e "   ${Y}Entri saat ini: $AGENT_IDENT${N}"
@@ -255,7 +255,7 @@ else
     dim "Tidak ada unit systemd wazuh-agent"
 fi
 
-# Skrip kendali bawaan agen, dipakai bila systemd tidak mengelolanya.
+# Skrip kendali bawaan agent, dipakai bila systemd tidak mengelolanya.
 if [ -x "$OSSEC_DIR/bin/wazuh-control" ]; then
     "$OSSEC_DIR/bin/wazuh-control" stop >/dev/null 2>&1 || true
     dim "wazuh-control stop dijalankan"
@@ -281,9 +281,9 @@ if [ "$KILLED" -gt 0 ]; then
         fi
     done
     sleep 1
-    ok "$KILLED proses agen dihentikan$([ "$STILL" -gt 0 ] && echo ", $STILL perlu dipaksa")"
+    ok "$KILLED proses agent dihentikan$([ "$STILL" -gt 0 ] && echo ", $STILL perlu dipaksa")"
 else
-    dim "Tidak ada proses agen yang berjalan"
+    dim "Tidak ada proses agent yang berjalan"
 fi
 
 # =============================================================================
@@ -531,7 +531,7 @@ case "$PKG" in
                     *)
                         PKG_REMOVE_FAILED=1
                         prob "Pencabutan paket GAGAL, status tersisa: $AFTER"
-                        dim "Folder agen tidak akan dihapus agar keadaan tidak bertambah rumit." ;;
+                        dim "Folder agent tidak akan dihapus agar keadaan tidak bertambah rumit." ;;
                 esac
             fi
             rm -f "$PURGE_OUT"
@@ -561,7 +561,7 @@ case "$PKG" in
                         ok "Paket dicabut dengan rpm -e --noscripts"
                     else
                         PKG_REMOVE_FAILED=1
-                        prob "Pencabutan paket GAGAL. Folder agen tidak akan dihapus."
+                        prob "Pencabutan paket GAGAL. Folder agent tidak akan dihapus."
                     fi
                 fi
             fi
@@ -588,7 +588,7 @@ fi
 # =============================================================================
 #  Langkah 5: hapus folder
 # =============================================================================
-step "Menghapus folder agen"
+step "Menghapus folder agent"
 
 # Folder TIDAK dihapus bila paket masih tersangkut di basis data dpkg
 # atau rpm. Menghapusnya justru memperparah keadaan: skrip prerm paket
@@ -746,7 +746,7 @@ esac
 if [ -d "$OSSEC_DIR" ]; then
     LEFTOVERS+=("Folder $OSSEC_DIR masih ada")
 else
-    ok "Folder agen terhapus"
+    ok "Folder agent terhapus"
 fi
 
 # Layanan
@@ -764,7 +764,7 @@ done
 if [ -n "$RUNNING" ]; then
     LEFTOVERS+=("Proses masih berjalan:$RUNNING")
 else
-    ok "Tidak ada proses agen yang berjalan"
+    ok "Tidak ada proses agent yang berjalan"
 fi
 
 # Aturan audit
@@ -829,8 +829,8 @@ if [ "${#LEFTOVERS[@]}" -eq 0 ]; then
     echo "=============================================================="
     echo
     if [ -n "$AGENT_IDENT" ]; then
-        echo -e "   ${Y}Jangan lupa hapus entri agen dari dasbor manajer,${N}"
-        echo -e "   ${Y}kalau tidak agen ini terlihat terputus terus menerus.${N}"
+        echo -e "   ${Y}Jangan lupa hapus entri agent dari dasbor manajer,${N}"
+        echo -e "   ${Y}kalau tidak agent ini terlihat terputus terus menerus.${N}"
         echo "   Entri: $AGENT_IDENT"
         echo "   Di manajer: /var/ossec/bin/manage_agents -r <id>"
         echo
@@ -883,7 +883,7 @@ else
     fi
     echo
     if [ "$HARD" -gt 0 ]; then
-        echo -e "   ${R}Jangan memasang ulang agen sebelum sisa di atas bersih.${N}"
+        echo -e "   ${R}Jangan memasang ulang agent sebelum sisa di atas bersih.${N}"
         echo "   Pemasangan di atas sisa membuat kunci dan konfigurasi bercampur."
         echo
         echo "   Langkah yang disarankan, tanpa perlu menyalakan ulang:"
