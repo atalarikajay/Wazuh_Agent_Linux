@@ -1712,16 +1712,6 @@ echo "     Status daemon      : $OSSEC_DIR/bin/wazuh-control status"
 echo "     Konfigurasi aktif  : $OSSEC_DIR/bin/wazuh-control info"
 echo "     Pantau log         : tail -f $OSSEC_LOG"
 echo "     Aturan audit aktif : auditctl -l | grep -c audit-wazuh"
-echo
-echo "   Di peladen manajer, bukan di sini:"
-echo "     Pastikan agen terdaftar :"
-echo "       /var/ossec/bin/agent_control -l | grep -i '$AGENT_NAME'"
-echo "     Lihat rincian agen :"
-echo "       /var/ossec/bin/agent_control -i \$(/var/ossec/bin/agent_control -l | grep -i '$AGENT_NAME' | awk '{print \$2}' | tr -d ',')"
-echo
-echo "   Di dasbor:"
-echo "     Pastikan alert dari '$AGENT_NAME' masuk ke indeks wazuh-alerts-*"
-echo "     Tanpa ini, agen terlihat tersambung tetapi datanya tidak terpakai."
 if [ "$RUN_TESTS" = "1" ]; then
     echo "     Cari penanda '$TEST_TAG' di dasbor sebagai bukti rantai penuh bekerja."
 fi
