@@ -1701,10 +1701,6 @@ echo "     Pastikan agent terdaftar :"
 echo "       /var/ossec/bin/agent_control -l | grep -i '$AGENT_NAME'"
 echo "     Lihat rincian agent :"
 echo "       /var/ossec/bin/agent_control -i \$(/var/ossec/bin/agent_control -l | grep -i '$AGENT_NAME' | awk '{print \$2}' | tr -d ',')"
-echo
-echo "   Di dashboard:"
-echo "     Pastikan alert dari '$AGENT_NAME' masuk ke indeks wazuh-alerts-*"
-echo "     Tanpa ini, agent terlihat tersambung tetapi datanya tidak terpakai."
 
 # Aturan auditd berlaku seketika lewat augenrules, jadi pemasangan tidak
 # memerlukan mesin dinyalakan ulang. Satu satunya pengecualian adalah
