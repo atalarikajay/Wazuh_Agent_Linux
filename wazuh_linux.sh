@@ -24,8 +24,8 @@
 #    AGENT_NAME        nama agent, bawaan hostname
 #    WAZUH_PASSWORD    kata sandi pendaftaran, bila manajer memintanya
 #    WAZUH_VERSION     versi paket, bawaan 4.9.2-1
-#    WAZUH_REG_PORT    porta pendaftaran, bawaan 1515
-#    WAZUH_COMM_PORT   porta pengiriman event, bawaan 1514
+#    WAZUH_REG_PORT    port pendaftaran, bawaan 1515
+#    WAZUH_COMM_PORT   port pengiriman event, bawaan 1514
 #    CONNECT_TIMEOUT   lama tunggu sambungan, bawaan 60 detik
 #    SKIP_AUDIT        isi 1 untuk melewati pemasangan aturan auditd
 #    SKIP_FIM          isi 1 untuk melewati aturan FIM tambahan
@@ -302,12 +302,12 @@ step "Mengumpulkan data pemasangan"
 if [ -z "${WAZUH_MANAGER:-}" ]; then
     [ "$NONINTERACTIVE" = "1" ] && die "WAZUH_MANAGER belum diisi dalam mode tanpa interaksi."
     echo
-    dim "Alamat tujuan agent menyambung. Boleh IP maupun nama domain."
+    dim "Untuk Integrasi Agent dengan Wazuh Manager/Worker. Boleh IP maupun nama domain."
     dim "Contoh IP      : 192.0.2.10"
     dim "Contoh domain  : wazuh.corp.local"
     dim "Contoh domain  : soc-wazuh.perusahaan.co.id"
     dim "Jangan memakai awalan jaringan seperti 192.0.2.0/24,"
-    dim "dan jangan menambahkan porta seperti 192.0.2.10:1514."
+    dim "dan jangan menambahkan port seperti 192.0.2.10:1514."
     tries=0
     while true; do
         tries=$((tries + 1))
@@ -317,7 +317,7 @@ if [ -z "${WAZUH_MANAGER:-}" ]; then
         echo -e "${R}  '$WAZUH_MANAGER' bukan IP atau nama domain yang sah.${N}"
         case "$WAZUH_MANAGER" in
             */*) echo -e "${R}  Tanda garis miring tidak dipakai. Isi alamat saja, misalnya 192.0.2.10${N}" ;;
-            *:*) echo -e "${R}  Porta tidak perlu ditulis. Isi alamat saja, misalnya 192.0.2.10${N}" ;;
+            *:*) echo -e "${R}  port tidak perlu ditulis. Isi alamat saja, misalnya 192.0.2.10${N}" ;;
         esac
     done
 else
@@ -412,15 +412,15 @@ fi
 # =============================================================================
 step "Memeriksa kesiapan mesin"
 
-# Porta wajib terbuka. Gagal di sini jauh lebih baik daripada pemasangan
+# port wajib terbuka. Gagal di sini jauh lebih baik daripada pemasangan
 # yang dilaporkan berhasil lalu agent diam diam tidak pernah terdaftar.
 for p in "$WAZUH_COMM_PORT" "$WAZUH_REG_PORT"; do
     label="pengiriman event"
     [ "$p" = "$WAZUH_REG_PORT" ] && label="pendaftaran"
     if timeout 5 bash -c "echo > /dev/tcp/$WAZUH_MANAGER/$p" 2>/dev/null; then
-        ok "Porta $p ($label) terbuka ke $WAZUH_MANAGER"
+        ok "port $p ($label) terbuka ke $WAZUH_MANAGER"
     else
-        die "Porta $p ($label) TERTUTUP ke $WAZUH_MANAGER. Periksa firewall dan rute lebih dulu."
+        die "port $p ($label) TERTUTUP ke $WAZUH_MANAGER. Periksa firewall dan rute lebih dulu."
     fi
 done
 
@@ -1386,7 +1386,7 @@ fi
 step "Menunggu pendaftaran dan sambungan ke manajer"
 
 # Pemeriksaan ini yang menentukan. agent bisa berstatus aktif tetapi tidak
-# pernah tersambung karena alamat salah, porta diblokir, nama bentrok,
+# pernah tersambung karena alamat salah, port diblokir, nama bentrok,
 # atau group tidak ada di manajer.
 info "Batas waktu ${CONNECT_TIMEOUT} detik"
 CONNECTED=0
@@ -1411,7 +1411,7 @@ if [ -s "$CLIENT_KEYS" ]; then
     ok "Terdaftar ke manajer: ID $AGENT_ID"
 else
     warn "client.keys masih kosong, agent belum terdaftar."
-    dim "Penyebab umum: porta 1515 tertutup, kata sandi pendaftaran salah,"
+    dim "Penyebab umum: port 1515 tertutup, kata sandi pendaftaran salah,"
     dim "atau nama agent sudah dipakai agent lain di manajer."
 fi
 
@@ -1726,7 +1726,7 @@ if [ "$CONNECTED" -ne 1 ]; then
     echo "agent belum tersambung. Periksa:"
     echo "  - group '$WAZUH_GROUP' sudah ada di manajer?"
     echo "  - nama '$AGENT_NAME' bentrok dengan agent lain?"
-    echo "  - porta $WAZUH_REG_PORT dan $WAZUH_COMM_PORT terbuka dua arah?"
+    echo "  - port $WAZUH_REG_PORT dan $WAZUH_COMM_PORT terbuka dua arah?"
     echo
     echo "--- 25 baris terakhir $OSSEC_LOG ---"
     tail -25 "$OSSEC_LOG" 2>/dev/null || echo "(log tidak terbaca)"
