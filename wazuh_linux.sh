@@ -302,7 +302,7 @@ step "Mengumpulkan data pemasangan"
 if [ -z "${WAZUH_MANAGER:-}" ]; then
     [ "$NONINTERACTIVE" = "1" ] && die "WAZUH_MANAGER belum diisi dalam mode tanpa interaksi."
     echo
-    dim "Masukkan IP untuk integrasi dengan server wazuh. Boleh IP maupun nama domain."
+    dim "Masukkan IP untuk integrasi agent dengan server wazuh. Boleh IP maupun nama domain."
     dim "Contoh IP      : 10.184.0.7"
     dim "Contoh domain  : wazuh.corp.local"
     dim "Contoh domain  : soc-wazuh.perusahaan.co.id"
