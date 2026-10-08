@@ -218,7 +218,7 @@ if [ "$ASSUME_YES" != "1" ]; then
     echo
     echo -e "   ${Y}Kunci pendaftaran agent ikut terhapus.${N}"
     echo -e "   ${Y}Bila agent dipasang ulang, ia mendaftar sebagai entri baru,${N}"
-    echo -e "   ${Y}dan entri lama perlu dihapus manual dari dasbor.${N}"
+    echo -e "   ${Y}dan entri lama perlu dihapus manual dari dashboard.${N}"
     if [ -n "$AGENT_IDENT" ]; then
         echo -e "   ${Y}Entri saat ini: $AGENT_IDENT${N}"
     fi
@@ -829,7 +829,7 @@ if [ "${#LEFTOVERS[@]}" -eq 0 ]; then
     echo "=============================================================="
     echo
     if [ -n "$AGENT_IDENT" ]; then
-        echo -e "   ${Y}Jangan lupa hapus entri agent dari dasbor manajer,${N}"
+        echo -e "   ${Y}Jangan lupa hapus entri agent dari dashboard manajer,${N}"
         echo -e "   ${Y}kalau tidak agent ini terlihat terputus terus menerus.${N}"
         echo "   Entri: $AGENT_IDENT"
         echo "   Di manajer: /var/ossec/bin/manage_agents -r <id>"
@@ -853,7 +853,7 @@ else
 
     # Mode immutable adalah satu satunya keadaan yang benar benar
     # memerlukan mesin dinyalakan ulang. Sisa lain bisa dibereskan
-    # langsung, dan di peladen produksi itu perbedaan yang penting.
+    # langsung, dan di server produksi itu perbedaan yang penting.
     NEEDS_REBOOT=0
     if command -v auditctl >/dev/null 2>&1; then
         if auditctl -s 2>/dev/null | grep -qE '^enabled[[:space:]]+2'; then
@@ -900,13 +900,13 @@ else
         esac
         echo
         echo "   Menyalakan ulang mesin hanya diperlukan bila cara di atas gagal,"
-        echo "   dan di peladen produksi itu bisa dijadwalkan terpisah."
+        echo "   dan di server produksi itu bisa dijadwalkan terpisah."
     elif [ "$NEEDS_REBOOT" -eq 1 ]; then
         echo "   auditd dikunci dalam mode immutable, sehingga aturan tidak bisa"
         echo "   dilepas dari kernel tanpa menyalakan ulang mesin. Berkas aturan"
         echo "   sudah dihapus, jadi setelah dinyalakan ulang aturan tidak dimuat lagi."
         echo
-        echo "   Di peladen produksi, ini bisa menunggu jadwal pemeliharaan."
+        echo "   Di server produksi, ini bisa menunggu jadwal pemeliharaan."
         echo "   Sampai saat itu kernel masih mencatat sesuai aturan lama, dan"
         echo "   /var/log/audit tetap tumbuh. Pantau ukurannya:"
         echo "     du -sh /var/log/audit"
