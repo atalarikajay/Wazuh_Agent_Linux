@@ -117,7 +117,7 @@ echo "=============================================================="
 echo
 echo "   Mesin        : $(hostname 2>/dev/null || echo '?')"
 echo "   Distribusi   : ${PRETTY_NAME:-tidak dikenali}"
-echo "   Manajer paket: ${PKG:-tidak ditemukan}"
+echo "   manager paket: ${PKG:-tidak ditemukan}"
 echo "   Berkas log   : $LOGFILE"
 
 # =============================================================================
@@ -175,7 +175,7 @@ case "$PKG" in
             dim "Paket terpasang: $(rpm -q wazuh-agent 2>/dev/null)"
         fi ;;
 esac
-[ "$PKG_PRESENT" -eq 0 ] && dim "Paket wazuh-agent tidak terdaftar di manajer paket"
+[ "$PKG_PRESENT" -eq 0 ] && dim "Paket wazuh-agent tidak terdaftar di manager paket"
 
 AUDIT_PRESENT=0
 if [ -f "$AUDIT_RULES" ]; then
@@ -192,11 +192,11 @@ if command -v auditctl >/dev/null 2>&1; then
 fi
 
 # Identitas agent perlu ditampilkan sebelum dihapus, karena entri di
-# manajer harus dibersihkan manual memakai ID ini.
+# manager harus dibersihkan manual memakai ID ini.
 AGENT_IDENT=""
 if [ -s "$OSSEC_DIR/etc/client.keys" ]; then
     AGENT_IDENT="$(awk 'NR==1{print $1" ("$2")"}' "$OSSEC_DIR/etc/client.keys" 2>/dev/null || true)"
-    [ -n "$AGENT_IDENT" ] && dim "Terdaftar di manajer sebagai: $AGENT_IDENT"
+    [ -n "$AGENT_IDENT" ] && dim "Terdaftar di manager sebagai: $AGENT_IDENT"
 fi
 
 if [ "$FOUND_ANY" -eq 0 ]; then
@@ -571,7 +571,7 @@ case "$PKG" in
         fi
         ;;
     *)
-        prob "Manajer paket tidak dikenali. Paket perlu dicabut manual."
+        prob "manager paket tidak dikenali. Paket perlu dicabut manual."
         ;;
 esac
 
@@ -829,10 +829,8 @@ if [ "${#LEFTOVERS[@]}" -eq 0 ]; then
     echo "=============================================================="
     echo
     if [ -n "$AGENT_IDENT" ]; then
-        echo -e "   ${Y}Jangan lupa hapus entri agent dari dashboard manajer,${N}"
-        echo -e "   ${Y}kalau tidak agent ini terlihat terputus terus menerus.${N}"
         echo "   Entri: $AGENT_IDENT"
-        echo "   Di manajer: /var/ossec/bin/manage_agents -r <id>"
+        echo "   Di manager: /var/ossec/bin/manage_agents -r <id>"
         echo
     fi
     echo "   Berkas log: $LOGFILE"
@@ -896,7 +894,7 @@ else
         case "$PKG" in
             apt)      echo "          dpkg --purge --force-all wazuh-agent" ;;
             dnf|yum)  echo "          rpm -e --nodeps wazuh-agent" ;;
-            *)        echo "          cabut manual lewat manajer paket distribusi ini" ;;
+            *)        echo "          cabut manual lewat manager paket distribusi ini" ;;
         esac
         echo
         echo "   Menyalakan ulang mesin hanya diperlukan bila cara di atas gagal,"
