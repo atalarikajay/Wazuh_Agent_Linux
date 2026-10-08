@@ -19,10 +19,10 @@
 #        | WAZUH_MANAGER=10.20.30.40 WAZUH_GROUP=prod-web bash
 #
 #  VARIABEL LINGKUNGAN
-#    WAZUH_MANAGER     IP atau hostname manajer (wajib bila tanpa interaksi)
+#    WAZUH_MANAGER     IP atau hostname manager (wajib bila tanpa interaksi)
 #    WAZUH_GROUP       satu atau lebih group, pisah koma (wajib bila tanpa interaksi)
 #    AGENT_NAME        nama agent, bawaan hostname
-#    WAZUH_PASSWORD    kata sandi pendaftaran, bila manajer memintanya
+#    WAZUH_PASSWORD    kata sandi pendaftaran, bila manager memintanya
 #    WAZUH_VERSION     versi paket, bawaan 4.9.2-1
 #    WAZUH_REG_PORT    port pendaftaran, bawaan 1515
 #    WAZUH_COMM_PORT   port pengiriman event, bawaan 1514
@@ -91,7 +91,7 @@ exec > >(tee -a "$LOGFILE") 2>&1
 # ---------- validasi ----------
 
 # Menerima IP maupun hostname, karena Wazuh mendukung <address> berupa
-# FQDN. Versi sebelumnya memaksa IP sehingga manajer di belakang DNS
+# FQDN. Versi sebelumnya memaksa IP sehingga manager di belakang DNS
 # atau penyeimbang beban tidak bisa dipakai.
 validate_host() {
     local h="$1"
@@ -106,7 +106,7 @@ validate_host() {
         for o in "${oct[@]}"; do
             (( o <= 255 )) || return 1
         done
-        # Alamat ini tidak mungkin menjadi manajer.
+        # Alamat ini tidak mungkin menjadi manager.
         case "$h" in
             0.0.0.0|255.255.255.255) return 1 ;;
         esac
@@ -146,7 +146,7 @@ validate_agent_name() {
 }
 
 # group dipisah koma. Versi sebelumnya membuang koma lewat tr sehingga
-# tiga group menjadi satu nama group yang tidak ada di manajer, dan
+# tiga group menjadi satu nama group yang tidak ada di manager, dan
 # pendaftaran gagal tanpa penjelasan.
 clean_groups() {
     local raw="$1" out=() g
@@ -215,7 +215,7 @@ detect_distro() {
             esac ;;
     esac
 
-    ok "Distribusi: ${PRETTY_NAME:-$id} (keluarga $OS_FAMILY, manajer paket $PKG)"
+    ok "Distribusi: ${PRETTY_NAME:-$id} (keluarga $OS_FAMILY, manager paket $PKG)"
 }
 
 pkg_install() {
@@ -236,7 +236,7 @@ pkg_refresh() {
 
 # Mengunci versi paket agar tidak ikut terbarui saat pembaruan sistem.
 # Pembaruan agent sebaiknya direncanakan, bukan terjadi tanpa sengaja,
-# karena versi agent perlu cocok dengan versi manajer.
+# karena versi agent perlu cocok dengan versi manager.
 pkg_hold() {
     case "$PKG" in
         apt)
@@ -246,7 +246,7 @@ pkg_hold() {
             ;;
         dnf|yum)
             # Memakai versionlock, bukan exclude. Baris exclude di berkas
-            # konfigurasi manajer paket membuat paket tidak bisa dipasang
+            # konfigurasi manager paket membuat paket tidak bisa dipasang
             # ulang maupun diperbarui bahkan secara sengaja, dan itu
             # menyulitkan saat agent perlu dinaikkan versinya.
             local lock_pkg="" locked=0
@@ -298,7 +298,7 @@ fi
 
 step "Mengumpulkan data pemasangan"
 
-# --- alamat manajer
+# --- alamat manager
 if [ -z "${WAZUH_MANAGER:-}" ]; then
     [ "$NONINTERACTIVE" = "1" ] && die "WAZUH_MANAGER belum diisi dalam mode tanpa interaksi."
     echo
@@ -311,7 +311,7 @@ if [ -z "${WAZUH_MANAGER:-}" ]; then
     tries=0
     while true; do
         tries=$((tries + 1))
-        [ "$tries" -gt 5 ] && die "Terlalu banyak masukan tidak sah untuk alamat manajer."
+        [ "$tries" -gt 5 ] && die "Terlalu banyak masukan tidak sah untuk alamat manager."
         ask "  IP atau domain Wazuh Manager: " WAZUH_MANAGER
         validate_host "$WAZUH_MANAGER" && break
         echo -e "${R}  '$WAZUH_MANAGER' bukan IP atau nama domain yang sah.${N}"
@@ -330,7 +330,7 @@ if [ -z "${WAZUH_GROUP:-}" ]; then
     [ "$NONINTERACTIVE" = "1" ] && die "WAZUH_GROUP belum diisi dalam mode tanpa interaksi."
     echo
     dim "group menentukan berkas agent.conf mana yang diterima agent ini."
-    dim "group harus SUDAH ADA di manajer, skrip ini tidak membuatnya."
+    dim "group harus SUDAH ADA di manager, skrip ini tidak membuatnya."
     dim "Contoh satu group   : default"
     dim "Contoh satu group   : linux-server"
     dim "Contoh banyak group : linux-server,web,produksi"
@@ -361,7 +361,7 @@ if [ -z "${AGENT_NAME:-}" ]; then
         AGENT_NAME="$DEFAULT_NAME"
     else
         echo
-        dim "Nama yang muncul di dashboard manajer. Harus unik, tidak boleh"
+        dim "Nama yang muncul di dashboard manager. Harus unik, tidak boleh"
         dim "sama dengan agent lain yang sudah terdaftar."
         dim "Contoh : srv-web-01"
         dim "Contoh : db-prod-02.corp.local"
@@ -384,7 +384,7 @@ validate_agent_name "$AGENT_NAME" \
 
 echo
 echo "  Ringkasan:"
-echo "    Manajer       : $WAZUH_MANAGER"
+echo "    manager       : $WAZUH_MANAGER"
 echo "    Nama agent     : $AGENT_NAME"
 echo "    group          : $WAZUH_GROUP"
 echo "    Versi paket   : $WAZUH_VERSION"
@@ -424,7 +424,7 @@ for p in "$WAZUH_COMM_PORT" "$WAZUH_REG_PORT"; do
     fi
 done
 
-# Jam yang meleset membuat korelasi di manajer salah dan alert sulit
+# Jam yang meleset membuat korelasi di manager salah dan alert sulit
 # diurutkan. Bukan penghalang, tapi perlu diketahui.
 if timedatectl show -p NTPSynchronized --value 2>/dev/null | grep -q '^yes$'; then
     ok "Jam tersinkron dengan NTP"
@@ -632,7 +632,7 @@ INSTALL_ENV=(
 )
 [ -n "${WAZUH_PASSWORD:-}" ] && INSTALL_ENV+=("WAZUH_REGISTRATION_PASSWORD=$WAZUH_PASSWORD")
 
-# Keluaran manajer paket disimpan, bukan dibuang. Bila pemasangan gagal,
+# Keluaran manager paket disimpan, bukan dibuang. Bila pemasangan gagal,
 # pesan aslinya yang menjelaskan sebabnya, bukan kode keluar.
 PKG_OUT="$(mktemp)"
 PKG_RC=0
@@ -646,7 +646,7 @@ esac
 
 if [ "$PKG_RC" -ne 0 ]; then
     echo
-    echo -e "${R}       Keluaran manajer paket:${N}"
+    echo -e "${R}       Keluaran manager paket:${N}"
     tail -20 "$PKG_OUT" | while IFS= read -r l; do echo "         $l"; done
     echo
 
@@ -727,12 +727,12 @@ fi
 ok "Paket wazuh-agent $WAZUH_VERSION terpasang"
 
 # Berkas tanda tangan rootkit disalin keluar dari etc/shared sebelum agent
-# berjalan. Direktori itu dikelola manajer: begitu konfigurasi group
+# berjalan. Direktori itu dikelola manager: begitu konfigurasi group
 # dikirim, seluruh isinya diganti dan berkas bawaan paket terhapus.
 # Akibatnya rootcheck mencatat 'No rootcheck_files file' pada setiap
 # pemindaian dan pemeriksaan tanda tangan rootkit tidak pernah berjalan.
 #
-# Salinan disimpan di etc/ yang tidak disentuh manajer, lalu konfigurasi
+# Salinan disimpan di etc/ yang tidak disentuh manager, lalu konfigurasi
 # diarahkan ke sana pada langkah penyisipan blok.
 ROOTKIT_DB_OK=0
 for rk in rootkit_files rootkit_trojans; do
@@ -744,7 +744,7 @@ if [ -f "$OSSEC_DIR/etc/rootkit_files.txt" ] && [ -f "$OSSEC_DIR/etc/rootkit_tro
     chown root:wazuh "$OSSEC_DIR/etc/rootkit_files.txt" "$OSSEC_DIR/etc/rootkit_trojans.txt" 2>/dev/null || true
     chmod 0640 "$OSSEC_DIR/etc/rootkit_files.txt" "$OSSEC_DIR/etc/rootkit_trojans.txt" 2>/dev/null || true
     ROOTKIT_DB_OK=1
-    dim "Basis tanda tangan rootkit disalin ke etc/ agar tidak tertimpa manajer"
+    dim "Basis tanda tangan rootkit disalin ke etc/ agar tidak tertimpa manager"
 else
     warn "Berkas tanda tangan rootkit tidak ditemukan di paket."
     dim "Pemeriksaan tanda tangan rootkit tidak akan berjalan."
@@ -1219,7 +1219,7 @@ $MARK_BEGIN
 $LOGFILES_BLOCK$JOURNALD_BLOCK
 $FIM_BLOCK
 
-  <!-- Inventaris sistem. Dasar bagi deteksi kerentanan di manajer.
+  <!-- Inventaris sistem. Dasar bagi deteksi kerentanan di manager.
        Tanpa syscollector, pencocokan CVE tidak punya data paket. -->
   <wodle name="syscollector">
     <disabled>no</disabled>
@@ -1248,7 +1248,7 @@ $FIM_BLOCK
        setiap pesan rootcheck muncul dua kali, termasuk pesan galat,
        sehingga sulit membedakan satu masalah dari dua masalah. -->
 
-  <!-- Tanggapan aktif. Diperlukan agar manajer dapat menjalankan
+  <!-- Tanggapan aktif. Diperlukan agar manager dapat menjalankan
        tindakan seperti memblokir alamat yang menyerang. -->
   <active-response>
     <disabled>no</disabled>
@@ -1340,7 +1340,7 @@ chmod 0660 "$OSSEC_CONF"
 ok "Blok konfigurasi tersisip dan lolos pemeriksaan XML"
 
 # Blok <rootcheck> bawaan menunjuk ke etc/shared, direktori yang isinya
-# diganti manajer. Rujukannya dialihkan ke salinan di etc/ yang dibuat
+# diganti manager. Rujukannya dialihkan ke salinan di etc/ yang dibuat
 # pada langkah pemasangan paket, sehingga pemeriksaan tanda tangan
 # rootkit tetap berjalan setelah konfigurasi group diterima.
 if [ "$ROOTKIT_DB_OK" = "1" ]; then
@@ -1381,13 +1381,13 @@ else
 fi
 
 # =============================================================================
-#  Langkah 9: menunggu sambungan ke manajer
+#  Langkah 9: menunggu sambungan ke manager
 # =============================================================================
-step "Menunggu pendaftaran dan sambungan ke manajer"
+step "Menunggu pendaftaran dan sambungan ke manager"
 
 # Pemeriksaan ini yang menentukan. agent bisa berstatus aktif tetapi tidak
 # pernah tersambung karena alamat salah, port diblokir, nama bentrok,
-# atau group tidak ada di manajer.
+# atau group tidak ada di manager.
 info "Batas waktu ${CONNECT_TIMEOUT} detik"
 CONNECTED=0
 FAIL_REASON=""
@@ -1408,15 +1408,15 @@ AGENT_ID=""
 if [ -s "$CLIENT_KEYS" ]; then
     REGISTERED=1
     AGENT_ID="$(awk 'NR==1{print $1" ("$2")"}' "$CLIENT_KEYS" 2>/dev/null || true)"
-    ok "Terdaftar ke manajer: ID $AGENT_ID"
+    ok "Terdaftar ke manager: ID $AGENT_ID"
 else
     warn "client.keys masih kosong, agent belum terdaftar."
     dim "Penyebab umum: port 1515 tertutup, kata sandi pendaftaran salah,"
-    dim "atau nama agent sudah dipakai agent lain di manajer."
+    dim "atau nama agent sudah dipakai agent lain di manager."
 fi
 
 if [ "$CONNECTED" -eq 1 ]; then
-    ok "agent tersambung ke manajer $WAZUH_MANAGER"
+    ok "agent tersambung ke manager $WAZUH_MANAGER"
 elif [ -n "$FAIL_REASON" ]; then
     warn "Gagal tersambung: $FAIL_REASON"
 else
@@ -1429,7 +1429,7 @@ fi
 step "Verifikasi pemantauan"
 
 # agent merestart dirinya sendiri setelah menerima konfigurasi group dari
-# manajer, karena ossec.conf bawaan memuat <auto_restart>yes</auto_restart>.
+# manager, karena ossec.conf bawaan memuat <auto_restart>yes</auto_restart>.
 # Verifikasi yang berjalan tepat pada saat itu akan melihat daemon sedang
 # mati dan melaporkannya sebagai kegagalan, padahal agent sehat.
 #
@@ -1581,11 +1581,11 @@ else
             done
             dim "Wazuh membawa kebijakan CIS hanya untuk sebagian versi rilis."
             dim "Bila versi mesin ini belum didukung, SCA tidak memeriksa apa pun."
-            dim "Periksa kebijakan yang tersedia di manajer: /var/ossec/etc/shared/<group>/"
+            dim "Periksa kebijakan yang tersedia di manager: /var/ossec/etc/shared/<group>/"
         elif [ "$SCA_POLICIES" -gt 0 ]; then
             vcheck pass "Kebijakan SCA tersedia" "$SCA_POLICIES berkas"
         else
-            vcheck warn "Kebijakan SCA tersedia" "belum ada, biasanya dikirim manajer lewat group"
+            vcheck warn "Kebijakan SCA tersedia" "belum ada, biasanya dikirim manager lewat group"
         fi
     fi
 
@@ -1656,7 +1656,7 @@ echo "=============================================================="
 echo "   Selesai"
 echo "=============================================================="
 echo "   agent          : $AGENT_NAME"
-echo "   Manajer       : $WAZUH_MANAGER"
+echo "   manager       : $WAZUH_MANAGER"
 echo "   group          : $WAZUH_GROUP"
 echo "   Distribusi    : ${PRETTY_NAME:-$OS_FAMILY}"
 if [ "$SKIP_AUDIT" != "1" ]; then
@@ -1697,7 +1697,6 @@ echo "     Konfigurasi aktif  : $OSSEC_DIR/bin/wazuh-control info"
 echo "     Pantau log         : tail -f $OSSEC_LOG"
 echo "     Aturan audit aktif : auditctl -l | grep -c audit-wazuh"
 echo
-echo "   Di server manajer, bukan di sini:"
 echo "     Pastikan agent terdaftar :"
 echo "       /var/ossec/bin/agent_control -l | grep -i '$AGENT_NAME'"
 echo "     Lihat rincian agent :"
@@ -1724,7 +1723,7 @@ echo "=============================================================="
 if [ "$CONNECTED" -ne 1 ]; then
     echo
     echo "agent belum tersambung. Periksa:"
-    echo "  - group '$WAZUH_GROUP' sudah ada di manajer?"
+    echo "  - group '$WAZUH_GROUP' sudah ada di manager?"
     echo "  - nama '$AGENT_NAME' bentrok dengan agent lain?"
     echo "  - port $WAZUH_REG_PORT dan $WAZUH_COMM_PORT terbuka dua arah?"
     echo
