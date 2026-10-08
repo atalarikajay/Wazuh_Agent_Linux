@@ -136,7 +136,7 @@ validate_host() {
     return 1
 }
 
-# Nama agen Wazuh boleh memuat titik, strip, dan garis bawah. Versi
+# Nama agent Wazuh boleh memuat titik, strip, dan garis bawah. Versi
 # sebelumnya membuang titik sehingga nama berbentuk FQDN menjadi rusak,
 # misalnya srv-01.corp.local menjadi srv-01corplocal.
 validate_agent_name() {
@@ -235,8 +235,8 @@ pkg_refresh() {
 }
 
 # Mengunci versi paket agar tidak ikut terbarui saat pembaruan sistem.
-# Pembaruan agen sebaiknya direncanakan, bukan terjadi tanpa sengaja,
-# karena versi agen perlu cocok dengan versi manajer.
+# Pembaruan agent sebaiknya direncanakan, bukan terjadi tanpa sengaja,
+# karena versi agent perlu cocok dengan versi manajer.
 pkg_hold() {
     case "$PKG" in
         apt)
@@ -268,7 +268,7 @@ pkg_hold() {
                 ok "Paket dikunci dengan $PKG versionlock"
             else
                 warn "Plugin versionlock tidak tersedia. Paket TIDAK dikunci."
-                dim "Agen bisa ikut terbarui saat '$PKG update'. Untuk mengunci:"
+                dim "Agent bisa ikut terbarui saat '$PKG update'. Untuk mengunci:"
                 dim "  $PKG install -y $lock_pkg && $PKG versionlock add wazuh-agent"
             fi
             ;;
@@ -354,7 +354,7 @@ else
     fi
 fi
 
-# --- nama agen
+# --- nama agent
 if [ -z "${AGENT_NAME:-}" ]; then
     DEFAULT_NAME="$(hostname 2>/dev/null || echo "wazuh-agent")"
     if [ "$NONINTERACTIVE" = "1" ]; then
@@ -362,15 +362,15 @@ if [ -z "${AGENT_NAME:-}" ]; then
     else
         echo
         dim "Nama yang muncul di dashboard manajer. Harus unik, tidak boleh"
-        dim "sama dengan agen lain yang sudah terdaftar."
+        dim "sama dengan agent lain yang sudah terdaftar."
         dim "Contoh : srv-web-01"
         dim "Contoh : db-prod-02.corp.local"
         dim "Tekan Enter saja untuk memakai nama mesin ini: $DEFAULT_NAME"
         tries=0
         while true; do
             tries=$((tries + 1))
-            [ "$tries" -gt 5 ] && die "Terlalu banyak masukan tidak sah untuk nama agen."
-            ask "  Nama agen [$DEFAULT_NAME]: " AGENT_NAME
+            [ "$tries" -gt 5 ] && die "Terlalu banyak masukan tidak sah untuk nama agent."
+            ask "  Nama agent [$DEFAULT_NAME]: " AGENT_NAME
             AGENT_NAME="${AGENT_NAME:-$DEFAULT_NAME}"
             validate_agent_name "$AGENT_NAME" && break
             echo -e "${R}  '$AGENT_NAME' tidak sah. Hanya huruf, angka, titik, strip,${N}"
@@ -380,12 +380,12 @@ if [ -z "${AGENT_NAME:-}" ]; then
     fi
 fi
 validate_agent_name "$AGENT_NAME" \
-  || die "Nama agen '$AGENT_NAME' tidak sah. Hanya huruf, angka, titik, strip, garis bawah, 2 sampai 128 karakter. Contoh benar: srv-web-01"
+  || die "Nama agent '$AGENT_NAME' tidak sah. Hanya huruf, angka, titik, strip, garis bawah, 2 sampai 128 karakter. Contoh benar: srv-web-01"
 
 echo
 echo "  Ringkasan:"
 echo "    Manajer       : $WAZUH_MANAGER"
-echo "    Nama agen     : $AGENT_NAME"
+echo "    Nama agent     : $AGENT_NAME"
 echo "    Group          : $WAZUH_GROUP"
 echo "    Versi paket   : $WAZUH_VERSION"
 # Baris di bawah hanya muncul bila memang menyimpang dari bawaan, supaya
@@ -413,7 +413,7 @@ fi
 step "Memeriksa kesiapan mesin"
 
 # Port wajib terbuka. Gagal di sini jauh lebih baik daripada pemasangan
-# yang dilaporkan berhasil lalu agen diam diam tidak pernah terdaftar.
+# yang dilaporkan berhasil lalu agent diam diam tidak pernah terdaftar.
 for p in "$WAZUH_COMM_PORT" "$WAZUH_REG_PORT"; do
     label="pengiriman event"
     [ "$p" = "$WAZUH_REG_PORT" ] && label="pendaftaran"
@@ -436,7 +436,7 @@ else
     esac
 fi
 
-# Ruang disk. Agen menulis log dan basis data FIM, dan auditd bisa
+# Ruang disk. Agent menulis log dan basis data FIM, dan auditd bisa
 # tumbuh cepat setelah aturan execve aktif.
 AVAIL_MB="$(df -Pm /var 2>/dev/null | awk 'NR==2{print $4}')"
 if [ -n "$AVAIL_MB" ] && [ "$AVAIL_MB" -lt 2048 ]; then
@@ -451,7 +451,7 @@ fi
 #
 #   /var/ossec/bin/wazuh-control stop
 #
-# tanpa memeriksa keberadaan berkas itu. Bila folder agen pernah dihapus
+# tanpa memeriksa keberadaan berkas itu. Bila folder agent pernah dihapus
 # manual sementara paket masih tercatat di dpkg, pemanggilan tersebut
 # berakhir dengan kode 127 dan dpkg menolak memproses paket. Akibatnya
 # paket tidak bisa dicabut maupun dipasang ulang.
@@ -510,7 +510,7 @@ MSG
 fi
 
 # Keadaan setara pada keluarga RHEL: paket tercatat di basis data rpm
-# tetapi folder agen sudah tidak ada.
+# tetapi folder agent sudah tidak ada.
 if [ "$OS_FAMILY" = "rhel" ]; then
     if rpm -q wazuh-agent >/dev/null 2>&1 && [ ! -d "$OSSEC_DIR" ]; then
         warn "Paket wazuh-agent tercatat di rpm tetapi folder $OSSEC_DIR tidak ada."
@@ -546,7 +546,7 @@ MSG
     fi
 fi
 
-# Agen lama yang masih berjalan wajar. Pemasangan di atasnya menimpa
+# Agent lama yang masih berjalan wajar. Pemasangan di atasnya menimpa
 # konfigurasi dan kunci pendaftaran.
 if systemctl is-active --quiet wazuh-agent 2>/dev/null; then
     warn "wazuh-agent sudah berjalan. Konfigurasi akan dipasang ulang."
@@ -566,11 +566,11 @@ else
     ok "Belum ada wazuh-agent yang berjalan"
 fi
 
-# SELinux dalam mode enforcing dapat menghalangi auditd dan agen.
+# SELinux dalam mode enforcing dapat menghalangi auditd dan agent.
 if [ "$OS_FAMILY" = "rhel" ] && command -v getenforce >/dev/null 2>&1; then
     SEL="$(getenforce 2>/dev/null || echo Unknown)"
     case "$SEL" in
-        Enforcing) warn "SELinux Enforcing. Bila agen gagal membaca log, periksa 'ausearch -m AVC -ts recent'." ;;
+        Enforcing) warn "SELinux Enforcing. Bila agent gagal membaca log, periksa 'ausearch -m AVC -ts recent'." ;;
         *) ok "SELinux: $SEL" ;;
     esac
 fi
@@ -624,7 +624,7 @@ ok "Repositori siap"
 step "Memasang wazuh-agent $WAZUH_VERSION"
 
 # Variabel lingkungan di bawah dibaca oleh skrip pascapasang paket untuk
-# mengisi konfigurasi awal dan mendaftarkan agen.
+# mengisi konfigurasi awal dan mendaftarkan agent.
 INSTALL_ENV=(
     "WAZUH_MANAGER=$WAZUH_MANAGER"
     "WAZUH_AGENT_GROUP=$WAZUH_GROUP"
@@ -685,7 +685,7 @@ rm -f "$PKG_OUT"
 # Keadaan itu dipulihkan di sini, bukan dilaporkan sebagai kegagalan.
 if [ ! -f "$OSSEC_CONF" ] && [ -f "${OSSEC_CONF}.new" ]; then
     warn "Paket memperlakukan ini sebagai peningkatan, konfigurasi ditulis sebagai ossec.conf.new"
-    dim "Ini terjadi bila agen pernah dipasang lalu dicabut tanpa purge."
+    dim "Ini terjadi bila agent pernah dipasang lalu dicabut tanpa purge."
     mv "${OSSEC_CONF}.new" "$OSSEC_CONF" \
       && ok "ossec.conf.new dipakai sebagai ossec.conf" \
       || die "Gagal memindahkan ${OSSEC_CONF}.new ke $OSSEC_CONF"
@@ -708,7 +708,7 @@ if [ ! -f "$OSSEC_CONF" ]; then
     die "$(cat <<MSG
 Paket terpasang tetapi $OSSEC_CONF tidak ada.
 
-        Penyebab paling umum: agen pernah dipasang lalu dicabut tanpa purge,
+        Penyebab paling umum: agent pernah dipasang lalu dicabut tanpa purge,
         sehingga dpkg memperlakukan pemasangan ini sebagai peningkatan versi
         dan menulis konfigurasi ke ossec.conf.new.
 
@@ -726,7 +726,7 @@ fi
 
 ok "Paket wazuh-agent $WAZUH_VERSION terpasang"
 
-# Berkas tanda tangan rootkit disalin keluar dari etc/shared sebelum agen
+# Berkas tanda tangan rootkit disalin keluar dari etc/shared sebelum agent
 # berjalan. Direktori itu dikelola manajer: begitu konfigurasi group
 # dikirim, seluruh isinya diganti dan berkas bawaan paket terhapus.
 # Akibatnya rootcheck mencatat 'No rootcheck_files file' pada setiap
