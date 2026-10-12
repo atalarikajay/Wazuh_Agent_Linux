@@ -38,8 +38,8 @@
 set -euo pipefail
 
 # ---------- parameter dasar ----------
-# Versi agen sebaiknya sama atau lebih rendah daripada versi manajer.
-# Agen yang lebih baru dari manajer tidak didukung dan bisa gagal
+# Versi agen sebaiknya sama atau lebih rendah daripada versi manager.
+# Agen yang lebih baru dari manager tidak didukung dan bisa gagal
 # mendaftar.
 WAZUH_VERSION="${WAZUH_VERSION:-4.9.2-1}"
 
@@ -317,7 +317,7 @@ step "Mengumpulkan data pemasangan"
 if [ -z "${WAZUH_MANAGER:-}" ]; then
     [ "$NONINTERACTIVE" = "1" ] && die "WAZUH_MANAGER belum diisi dalam mode tanpa interaksi."
     echo
-    dim "Untuk Integrasi Agent dengan Wazuh Manager/Worker. Boleh IP maupun nama domain."
+    dim "Untuk Integrasi Agent dengan Wazuh manager/Worker. Boleh IP maupun nama domain."
     dim "Contoh IP      : 192.0.2.10"
     dim "Contoh domain  : wazuh.corp.local"
     dim "Contoh domain  : soc-wazuh.perusahaan.co.id"
@@ -327,7 +327,7 @@ if [ -z "${WAZUH_MANAGER:-}" ]; then
     while true; do
         tries=$((tries + 1))
         [ "$tries" -gt 5 ] && die "Terlalu banyak masukan tidak sah untuk alamat manager."
-        ask "  IP atau domain Wazuh Manager: " WAZUH_MANAGER
+        ask "  IP atau domain Wazuh manager: " WAZUH_MANAGER
         validate_host "$WAZUH_MANAGER" && break
         echo -e "${R}  '$WAZUH_MANAGER' bukan IP atau nama domain yang sah.${N}"
         case "$WAZUH_MANAGER" in
@@ -657,7 +657,7 @@ if [ "$PKG_PRESENT" -eq 1 ]; then
     [ -n "$OLD_ID" ] && MANAGER_NOTE="
 
         Setelah dicabut, hapus juga entri lama di manager. Jalankan ini
-        DI SERVER MANAGER, bukan di mesin ini:
+        DI SERVER manager, bukan di mesin ini:
           /var/ossec/bin/manage_agents -r ${OLD_ID_NUM:-<id>}"
 
     echo
@@ -2177,14 +2177,7 @@ echo "     Aturan audit aktif : auditctl -l | grep -c audit-wazuh"
 echo
 echo "     Lihat pendaftaran  : cat $CLIENT_KEYS"
 echo
-echo "   Di server manager:"
-echo "     Perkakas agent_control hanya terpasang di manager, tidak di"
-echo "     mesin agent, jadi perintah berikut dijalankan di sana."
-echo
-echo "     Pastikan agent terdaftar :"
-echo "       /var/ossec/bin/agent_control -l | grep -i '$AGENT_NAME'"
-echo "     Lihat rincian agent :"
-echo "       /var/ossec/bin/agent_control -i <id-agent>"
+
 
 # Aturan auditd berlaku seketika lewat augenrules, jadi pemasangan tidak
 # memerlukan mesin dinyalakan ulang. Satu satunya pengecualian adalah
