@@ -38,8 +38,8 @@
 set -euo pipefail
 
 # ---------- parameter dasar ----------
-# Versi agen sebaiknya sama atau lebih rendah daripada versi manajer.
-# Agen yang lebih baru dari manajer tidak didukung dan bisa gagal
+# Versi agen sebaiknya sama atau lebih rendah daripada versi manager.
+# Agen yang lebih baru dari manager tidak didukung dan bisa gagal
 # mendaftar.
 WAZUH_VERSION="${WAZUH_VERSION:-4.9.2-1}"
 
